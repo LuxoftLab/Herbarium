@@ -1,7 +1,6 @@
 package com.example.shand.herbarium;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -13,22 +12,22 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
 
-public class CameraActivity extends Activity implements CvCameraViewListener2 {
-
-    private String cascadeFrontalFileName = "lbp_basil_cascade.xml";
+public class FindContoursActivity extends Activity implements CvCameraViewListener2 {
+    private Mat mRgba;
+    private Mat mGray;
+    private LeafClassifier leafClassifier;
     private CameraBridgeViewBase mOpenCvCameraView;
-    private LeafContourDetector leafDetector;
-    private Mat frameMat;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -55,30 +54,13 @@ public class CameraActivity extends Activity implements CvCameraViewListener2 {
             Log.e(FindContoursActivity.class.getName(), "Cannot connect to OpenCV Manager");
         }
 
-        try {
-            InputStream is = getAssets().open(cascadeFrontalFileName);
-            File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-            File cascadeFile = new File(cascadeDir, cascadeFrontalFileName);
-            FileOutputStream fos = new FileOutputStream(cascadeFile);
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = is.read(buffer)) > 0) {
-                fos.write(buffer, 0, bytesRead);
-            }
-            is.close();
-            fos.close();
-
-            leafDetector = new LeafContourDetector(cascadeFile.getAbsolutePath());
-        } catch (IOException e) {
-            Log.e(FindContoursActivity.class.getName(), e.getMessage(), e);
-        }
-
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_camera);
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        leafClassifier = new LeafClassifier(0.01, 0.9);
     }
 
     @Override
@@ -107,17 +89,44 @@ public class CameraActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public void onCameraViewStarted(int width, int height) {
+        mRgba = new Mat(height, width, CvType.CV_8UC4);
+        mGray = new Mat(height, width, CvType.CV_8UC1);
     }
 
     public void onCameraViewStopped() {
+        mRgba.release();
+        mGray.release();
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        frameMat = inputFrame.rgba();
-        Rect[] rect = leafDetector.detect(inputFrame.gray());
-        for (Rect r : rect) {
-            Imgproc.rectangle(frameMat, r.tl(), r.br(), new Scalar(0, 255, 0, 255), 1);
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
+
+        ArrayList<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+
+        Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 0.3 * (3 / 2 - 1) + 0.8, 0.0, 4);
+        Imgproc.threshold(mGray, mGray, 160, 255, Imgproc.THRESH_BINARY_INV);
+
+        Imgproc.Canny(mGray, mGray, 80, 100);
+        Imgproc.findContours(mGray, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
+
+        int imax = 0;
+        double areamax = -1;
+        for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
+            if (Imgproc.contourArea(contours.get(contourIdx)) > areamax) {
+                imax = contourIdx;
+                areamax = Imgproc.contourArea(contours.get(contourIdx));
+            }
         }
-        return frameMat;
+
+        hierarchy.release();
+
+        if (areamax != -1 && contours.size() != 0) {
+            Imgproc.drawContours(mRgba, contours, imax, new Scalar(0, 0, 255));
+            Imgproc.putText(mRgba, (leafClassifier.hasSmoothEdges(contours.get(imax))? "smooth edges" : "ribbed edges"), new Point(0, 90), 0, 2, new Scalar(255, 0, 0));
+        }
+
+        return mRgba;
     }
 }

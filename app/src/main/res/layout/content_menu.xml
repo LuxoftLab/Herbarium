@@ -28,6 +28,13 @@
             android:id="@+id/buttonCatchLeaves"
             android:layout_gravity="center_horizontal" />
 
+        <Button
+            android:layout_width="142dp"
+            android:layout_height="wrap_content"
+            android:text="Find contours"
+            android:id="@+id/contourButton"
+            android:layout_gravity="center_horizontal" />
+
     </LinearLayout>
 
     <TextView

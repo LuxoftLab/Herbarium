@@ -6,11 +6,11 @@ import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
 
-public class LeafDetector {
+public class LeafContourDetector {
     private CascadeClassifier cascadeClassifier;
     private MatOfRect objects;
 
-    public LeafDetector(String cascadeFileName) {
+    public LeafContourDetector(String cascadeFileName) {
         cascadeClassifier = new CascadeClassifier();
         cascadeClassifier.load(cascadeFileName);
         objects = new MatOfRect();
