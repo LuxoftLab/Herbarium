@@ -24,10 +24,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class CameraActivity extends Activity implements CvCameraViewListener2 {
+    private static final String TAG = "Time in FindContours";
+    private static int count = 0;
+    private static long sum=0;
 
-    private String cascadeFrontalFileName = "lbp_basil_cascade.xml";
+    private String cascadeFrontalFileName = "lbp_maidenhair_cascade.xml";
+    //private String cascadeFrontalFileName = "lbp_basil_cascade.xml";
     private CameraBridgeViewBase mOpenCvCameraView;
-    private LeafContourDetector leafDetector;
+    private LeafDetector leafDetector;
     private Mat frameMat;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -69,7 +73,7 @@ public class CameraActivity extends Activity implements CvCameraViewListener2 {
             is.close();
             fos.close();
 
-            leafDetector = new LeafContourDetector(cascadeFile.getAbsolutePath());
+            leafDetector = new LeafDetector(cascadeFile.getAbsolutePath());
         } catch (IOException e) {
             Log.e(FindContoursActivity.class.getName(), e.getMessage(), e);
         }
@@ -110,14 +114,28 @@ public class CameraActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public void onCameraViewStopped() {
+        Log.d(TAG, "average: "+ ((double)sum/count));
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        frameMat = inputFrame.rgba();
+        frameMat = inputFrame.gray();
+        //frameMat = inputFrame.rgba();
+        long start = System.currentTimeMillis();
+        Log.d(TAG, "start: " + start);
+
         Rect[] rect = leafDetector.detect(inputFrame.gray());
+        long end = System.currentTimeMillis();
+        Log.d(TAG, "end: " + end);
+        long diff = end - start;
+        sum+=diff;
+        count++;
+
         for (Rect r : rect) {
-            Imgproc.rectangle(frameMat, r.tl(), r.br(), new Scalar(0, 255, 0, 255), 1);
+            Imgproc.rectangle(frameMat, r.tl(), r.br(), new Scalar(255, 255, 255, 255), 3);
         }
+        Log.d(TAG, "difference: " + diff);
+
         return frameMat;
+
     }
 }

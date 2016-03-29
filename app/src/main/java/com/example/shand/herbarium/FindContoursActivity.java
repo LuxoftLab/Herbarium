@@ -16,7 +16,6 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -24,6 +23,9 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 
 public class FindContoursActivity extends Activity implements CvCameraViewListener2 {
+    private static final String TAG = "Time in FindContours";
+    private static int count = 0;
+    private static long sum=0;
     private Mat mRgba;
     private Mat mGray;
     private LeafClassifier leafClassifier;
@@ -96,9 +98,12 @@ public class FindContoursActivity extends Activity implements CvCameraViewListen
     public void onCameraViewStopped() {
         mRgba.release();
         mGray.release();
+        Log.d(TAG, "average: "+ ((double)sum/count));
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+        long start = System.currentTimeMillis();
+        Log.d(TAG, "start: " + start);
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
 
@@ -126,7 +131,14 @@ public class FindContoursActivity extends Activity implements CvCameraViewListen
             Imgproc.drawContours(mRgba, contours, imax, new Scalar(0, 0, 255));
             Imgproc.putText(mRgba, (leafClassifier.hasSmoothEdges(contours.get(imax))? "smooth edges" : "ribbed edges"), new Point(0, 90), 0, 2, new Scalar(255, 0, 0));
         }
+        long end = System.currentTimeMillis();
+        Log.d(TAG, "end: " + end);
+        long diff = end - start;
+        sum+=diff;
+        count++;
+        Log.d(TAG, "difference: " + diff);
 
         return mRgba;
     }
+
 }
