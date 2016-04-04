@@ -25,4 +25,8 @@
     <string name="catchLeaves">Catch the leaves</string>
     <string name="shareToFriends">Share to friends</string>
     <string name="title_activity_history">History</string>
+
+    <string name="title_activity_venation">VenationActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

@@ -12,6 +12,7 @@ public class LeafDetector {
 
     public LeafDetector(String cascadeFileName) {
         cascadeClassifier = new CascadeClassifier();
+        //cascadeClassifier.load(cascadeFileName);
         cascadeClassifier.load(cascadeFileName);
         objects = new MatOfRect();
     }
