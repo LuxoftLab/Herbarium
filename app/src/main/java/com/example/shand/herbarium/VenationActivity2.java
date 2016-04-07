@@ -84,9 +84,10 @@ public class VenationActivity2 extends Activity implements CvCameraViewListener2
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         frameMat = inputFrame.gray();
+        //frameMat = inputFrame.rgba();
         Mat m = inputFrame.rgba();
         VenetionDetector venetionDetector = new VenetionDetector();
-        m = venetionDetector.detect(frameMat, m);
+        m = venetionDetector.detect(frameMat, m, m);
 
         return m;
 

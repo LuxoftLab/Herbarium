@@ -1,14 +1,26 @@
 package com.example.shand.herbarium;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 public class VenetionDetector {
     public Mat detect(Mat mat, Mat rgba, Mat mask_image){
 
-        Imgproc.drawContours(mask_image, contours, ind, Scalar(255), CV_FILLED);
+        //Mat destination = new Mat(mat.rows(),mat.cols(),mat.type());
+      //  Imgproc.GaussianBlur(mat, mat, new Size(0, 0), 10);
+      //  Core.addWeighted(mat, 1.5, mat, -0.5, 0, mat);
+       Mat dst = new Mat(mat.rows(), mat.cols(), mat.type());
+        Imgproc.dilate(mat, dst, new Mat()/*, new Point(-1, -1), 2, 1, 1*/);
+        Imgproc.erode(dst, dst, new Mat());
+        Core.subtract(dst, mat, mat);
+        Imgproc.threshold(mat, dst, 40, 255, Imgproc.THRESH_BINARY);
+        Core.subtract(mat, dst, mat);
+//        mat.inv();
+        Imgproc.threshold(mat, mat, 242, 255, Imgproc.THRESH_BINARY_INV | Imgproc.THRESH_OTSU);
+        //Imgproc.drawContours(mask_image, contours, ind, Scalar(255), CV_FILLED);
 // copy only non-zero pixels from your image to original image
-        your_image.copyTo(original_image, mask_image);
+        //your_image.copyTo(original_image, mask_image);
 /*
         double d[] = new double[1];
         ArrayList<MatOfPoint> contours = new ArrayList<>();
@@ -37,5 +49,7 @@ public class VenetionDetector {
 
 
         return mat;
+       // return dst;
+
     }
 }

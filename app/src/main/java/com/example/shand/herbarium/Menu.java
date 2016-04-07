@@ -7,12 +7,14 @@ import android.view.View;
 import android.widget.Button;
 
 public class Menu extends Activity {
-
+    Button buttonMoveToCatchLeaves;
+    Button buttonFindContour;
+    Button buttonFindVenation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-        Button buttonMoveToCatchLeaves = (Button) findViewById(R.id.buttonCatchLeaves);
+        buttonMoveToCatchLeaves = (Button) findViewById(R.id.buttonCatchLeaves);
 
         buttonMoveToCatchLeaves.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -22,15 +24,25 @@ public class Menu extends Activity {
             }
         });
 
-        buttonMoveToCatchLeaves = (Button) findViewById(R.id.contourButton);
+        buttonFindContour = (Button) findViewById(R.id.contourButton);
 
-        buttonMoveToCatchLeaves.setOnClickListener(new View.OnClickListener() {
+        buttonFindContour.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent mIntent = new Intent(Menu.this, FindContoursActivity.class);
                 startActivity(mIntent);
             }
         });
+
+        buttonFindVenation = (Button) findViewById(R.id.buttonFindVenation);
+        buttonFindVenation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent mIntent = new Intent(Menu.this, VenationActivity2.class);
+                startActivity(mIntent);
+            }
+        });
+
 
     }
 
