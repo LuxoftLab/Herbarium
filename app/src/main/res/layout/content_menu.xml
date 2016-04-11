@@ -22,21 +22,14 @@
 
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/catchLeaves"
-            android:id="@+id/buttonCatchLeaves"
-            android:layout_gravity="center_horizontal" />
-
-        <Button
-            android:layout_width="142dp"
+            android:layout_width="151dp"
             android:layout_height="wrap_content"
             android:text="Find contours"
             android:id="@+id/contourButton"
             android:layout_gravity="center_horizontal" />
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="155dp"
             android:layout_height="wrap_content"
             android:text="@string/findVenation"
             android:id="@+id/buttonFindVenation"
@@ -50,5 +43,14 @@
         android:textSize="40dp"
         android:id="@+id/menu_tittle"
         android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/catchLeaves"
+        android:id="@+id/buttonCatchLeaves"
+        android:layout_gravity="center_horizontal"
+        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 </RelativeLayout>
