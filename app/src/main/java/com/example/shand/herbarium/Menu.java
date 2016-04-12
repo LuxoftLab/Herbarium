@@ -38,7 +38,7 @@ public class Menu extends Activity {
         buttonFindVenation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent mIntent = new Intent(Menu.this, VenationActivity2.class);
+                Intent mIntent = new Intent(Menu.this, VenationActivity.class);
                 startActivity(mIntent);
             }
         });
