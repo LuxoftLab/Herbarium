@@ -3,6 +3,10 @@
     package="com.example.shand.herbarium">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Allows access to the flashlight -->
+    <permission android:name="android.permission.FLASHLIGHT"
+        android:permissionGroup="android.permission-group.HARDWARE_CONTROLS"
+        android:protectionLevel="normal" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -56,7 +60,12 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_venation"
             android:screenOrientation="landscape"
-            android:theme="@style/FullscreenTheme"/>
+            android:theme="@style/FullscreenTheme" />
+        <activity android:name=".ShowVenation"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_venation"
+            android:screenOrientation="landscape"
+            android:theme="@style/FullscreenTheme" />
     </application>
 
 </manifest>

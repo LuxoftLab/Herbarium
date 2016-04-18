@@ -2,7 +2,9 @@ package com.example.shand.herbarium;
 
 import android.util.Log;
 
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
@@ -13,21 +15,65 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 
 public class VenationDetector {
+    private Mat morphology;
+    private Mat contour;
+    private Mat imageEnchancement;
+    private Mat binarization;
+    private Mat findLines;
+
+    public Mat getMorphology(){
+        return morphology;
+    }
+
+    public Mat getContour(){
+        return contour;
+    }
+
+    public Mat getImageEnchancement(){
+        return imageEnchancement;
+    }
+
+    public Mat getBinarization(){
+        return binarization;
+    }
+
+    public Mat getFindLines(){
+        return findLines;
+    }
 
     public Mat detect(Mat gray, Mat rgba){
-        ArrayList<MatOfPoint> contours = findContours(gray.clone());
+        /*ArrayList<MatOfPoint> contours = findContours(gray.clone());
         int index = findOuterContour(contours);
+*/
+        LeafData leafData = LeafData.getLeafData();
+        ArrayList<MatOfPoint> contours = new ArrayList<>();
+        contours.add(leafData.getContour());
 
-        morphologyProcessing(gray);
 
-        removeOuterContour(gray, contours, index);
+        gray = morphologyProcessing(gray);
 
-        imageEnhancement(gray);
-        binarization(gray);
+        gray = removeOuterContour(gray, contours, -1);
+
+        gray = imageEnhancement(gray);
+        gray = binarization(gray);
 
         findLines(gray, rgba);
 
         return rgba;
+    }
+
+    private Mat grayscale(Mat rgba){
+        Mat hsv = new Mat(), gray = new Mat(rgba.rows(), rgba.cols(), CvType.CV_8UC1);
+        Imgproc.cvtColor(rgba, hsv, Imgproc.COLOR_RGB2HSV);
+
+        for(int i = 0; i < gray.rows(); i++){
+            for(int j = 0; j < gray.cols(); j++){
+                double d[] = hsv.get(i, j);
+                gray.put(i, j, (double)((((d[0]+90)/100)+1 - d[2])/2));//
+            }
+        }
+
+        return gray;
     }
 
     private Mat morphologyProcessing(Mat src){
@@ -36,6 +82,9 @@ public class VenationDetector {
         Imgproc.dilate(src, closing, new Mat(), new Point(-1, -1), 2, 1, new Scalar(1));
         Imgproc.erode(closing, closing, new Mat());
         Core.subtract(closing, src, src);
+        morphology = src.clone();
+        Imgproc.putText(morphology, "morphology", new Point(0, 90), 0, 2, new Scalar(255));
+
         return src;
     }
 
@@ -67,37 +116,60 @@ public class VenationDetector {
     }
 
     private Mat removeOuterContour(Mat mat, ArrayList<MatOfPoint> contours, int imax){
-        if(imax != -1) {
+        contour = mat.clone();
+       // if(imax != -1) {
+            Mat buffer = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
             Mat mask = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
             Imgproc.drawContours(mask, contours, imax, new Scalar(255), -1);
+
+            contour = mat.clone();
 
             Imgproc.drawContours(mat, contours, imax, new Scalar(0), 20);
             Log.d(getClass().getName(), "outer contour was removed");
 
-            Core.bitwise_and(mat, mask, mat);
-        }else {
-            Log.d(getClass().getName(), "outer contour wasn't removed");
-        }
+            //Core.bitwise_and(mat, mask, mat);
+            mat.copyTo(buffer, mask);
+
+            mat = buffer;
+
+
+            // Imgproc.drawContours(contour, contours, imax, new Scalar(255), 20);
+
+            //contour = mat.clone();
+      //  }else {
+
+      //      Log.d(getClass().getName(), "outer contour wasn't removed");
+      //  }
 
         return mat;
     }
 
     private Mat imageEnhancement(Mat mat){
         Imgproc.equalizeHist(mat, mat);
+        imageEnchancement = mat.clone();
+        Imgproc.putText(imageEnchancement, "imageEnchancement", new Point(0, 90), 0, 2, new Scalar(255));
         return mat;
     }
 
     private Mat binarization(Mat mat){
         Imgproc.threshold(mat, mat, 215, 255, Imgproc.THRESH_BINARY);
+        binarization = mat.clone();
+        Imgproc.putText(binarization, "binarization", new Point(0, 90), 0, 2, new Scalar(255));
         return mat;
     }
 
     private void findLines(Mat mat, Mat dst){
+        findLines = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
+
+
+
         Mat lines = new Mat();
         Imgproc.HoughLinesP(mat, lines, 1, Math.PI / 180, 60, 70, 10);
 
         int index = -1;
         double max_res = -1;
+
+        Log.d("Lines", "Lines " + lines.cols());
 
         for (int x = 0; x < lines.cols(); x++) {
             double[] vec = lines.get(0, x);
@@ -116,7 +188,7 @@ public class VenationDetector {
             }
 
             Imgproc.line(dst, start, end, new Scalar(255,0,0), 8);
-
+            Imgproc.line(findLines, start, end, new Scalar(255), 8);
         }
 
         if (lines.cols() == 0){
@@ -134,5 +206,8 @@ public class VenationDetector {
 
         //draw main vein
         Imgproc.line(dst, start, end, new Scalar(255, 0, 255), 8);
+
+        Imgproc.putText(findLines, "findLines", new Point(0, 90), 0, 2, new Scalar(255));
+
     }
 }
