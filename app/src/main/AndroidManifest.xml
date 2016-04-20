@@ -57,10 +57,10 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
         <activity
             android:name=".VenationActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_venation"
+            android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="landscape"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
         <activity android:name=".ShowVenation"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_venation"

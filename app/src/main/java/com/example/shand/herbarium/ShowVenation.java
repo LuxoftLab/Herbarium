@@ -74,5 +74,13 @@ public class ShowVenation extends AppCompatActivity {
         Utils.matToBitmap(morphology, bitmap);
         imageView.setImageBitmap(bitmap);
         scrollView.addView(imageView);
+
+
+       /* imageView = new ImageView(this);
+        morphology = venationDetector.getFindLines2();
+        bitmap = Bitmap.createBitmap(morphology.width(), morphology.height(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(morphology, bitmap);
+        imageView.setImageBitmap(bitmap);
+        scrollView.addView(imageView);*/
     }
 }

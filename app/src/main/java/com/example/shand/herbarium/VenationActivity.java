@@ -67,8 +67,8 @@ public class VenationActivity extends Activity implements CvCameraViewListener2 
         mOpenCvCameraView.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent ev) {
                 //int action = ev.getAction();
-                        xTouch = ev.getX();
-                        yTouch = ev.getY();
+                xTouch = ev.getX();
+                yTouch = ev.getY();
                 touch = true;
 
                 return true;
@@ -106,55 +106,37 @@ public class VenationActivity extends Activity implements CvCameraViewListener2 
     }
 
     public void onCameraViewStarted(int width, int height) {
+        rgba = new Mat();
+        frameMat = new Mat();
     }
 
     public void onCameraViewStopped() {
-
+        rgba.release();
+        frameMat.release();
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-
-
-        if(!isContourFound) {
+        if (!isContourFound) {
             frameMat = inputFrame.gray();
             rgba = inputFrame.rgba();
 
             if (touch) {
                 isContourFound = leafData.find(frameMat, xTouch, yTouch, rgba);
                 if (isContourFound) {
-                   // Log.d(this.getClass().getName().toString(), "CONTOUR FOUND");
-                   // ArrayList<MatOfPoint> contours = new ArrayList<>();
-                   // contours.add(leafData.getContour());
-                    //Imgproc.drawContours(rgba, contours, -1, new Scalar(255, 0, 255), 8);
-//                    Toast.makeText(this, "Contour found", Toast.LENGTH_SHORT).show();
-
-                    /*long addrGray = frameMat.getNativeObjAddr();
-                    long addrRgba = rgba.getNativeObjAddr();
-*/
-
-
                     Intent intent = new Intent(this, ShowVenation.class);
-  /*                  intent.putExtra( "image_gray", addrGray );
-                    intent.putExtra( "image_rgba", addrRgba );
-    */                startActivity( intent );
+                    startActivity(intent);
                 }
 
-                Imgproc.circle(rgba, new Point(xTouch, yTouch), 20, new Scalar(255, 0, 0));
+                Imgproc.circle(rgba, new Point(xTouch, yTouch), 20, new Scalar(255, 0, 0), -1);
             }
 
-            if(mOpenCvCameraView.isFocused()){
+            if (mOpenCvCameraView.isFocused()) {
                 Imgproc.circle(rgba, new Point(20, 20), 20, new Scalar(0, 0, 0), -1);
             }
 
             return rgba;
         }
 
-        if(mOpenCvCameraView.isFocused()){
-            Imgproc.circle(rgba, new Point(20, 20), 20, new Scalar(0, 0, 0), -1);
-        }
-
         return rgba;
-
-        //venationDetector.detect(frameMat, inputFrame.rgba());
     }
 }

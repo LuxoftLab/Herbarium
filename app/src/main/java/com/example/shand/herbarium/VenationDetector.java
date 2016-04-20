@@ -2,17 +2,18 @@ package com.example.shand.herbarium;
 
 import android.util.Log;
 
-import org.opencv.android.Utils;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class VenationDetector {
     private Mat morphology;
@@ -21,30 +22,29 @@ public class VenationDetector {
     private Mat binarization;
     private Mat findLines;
 
-    public Mat getMorphology(){
+    public Mat getMorphology() {
         return morphology;
     }
 
-    public Mat getContour(){
+    public Mat getContour() {
         return contour;
     }
 
-    public Mat getImageEnchancement(){
+    public Mat getImageEnchancement() {
         return imageEnchancement;
     }
 
-    public Mat getBinarization(){
+    public Mat getBinarization() {
         return binarization;
     }
 
-    public Mat getFindLines(){
+    public Mat getFindLines() {
         return findLines;
     }
 
-    public Mat detect(Mat gray, Mat rgba){
-        /*ArrayList<MatOfPoint> contours = findContours(gray.clone());
-        int index = findOuterContour(contours);
-*/
+    public Mat detect(Mat gray, Mat rgba) {
+        float minLineLength;
+
         LeafData leafData = LeafData.getLeafData();
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         contours.add(leafData.getContour());
@@ -57,26 +57,19 @@ public class VenationDetector {
         gray = imageEnhancement(gray);
         gray = binarization(gray);
 
-        findLines(gray, rgba);
+        minLineLength = getMinLineLength(rgba, leafData.getContour());
+
+        Mat lines = findLines(gray, rgba, minLineLength / 3);
+
+        int k = deleteCloseLines(lines, rgba);
+        Log.d("Lines", "Unique lines " + k);
+
+        Imgproc.putText(rgba, classify(k), new Point(0, 90), 0, 2, new Scalar(255, 255, 255), 3);
 
         return rgba;
     }
 
-    private Mat grayscale(Mat rgba){
-        Mat hsv = new Mat(), gray = new Mat(rgba.rows(), rgba.cols(), CvType.CV_8UC1);
-        Imgproc.cvtColor(rgba, hsv, Imgproc.COLOR_RGB2HSV);
-
-        for(int i = 0; i < gray.rows(); i++){
-            for(int j = 0; j < gray.cols(); j++){
-                double d[] = hsv.get(i, j);
-                gray.put(i, j, (double)((((d[0]+90)/100)+1 - d[2])/2));//
-            }
-        }
-
-        return gray;
-    }
-
-    private Mat morphologyProcessing(Mat src){
+    private Mat morphologyProcessing(Mat src) {
         Mat closing = new Mat(src.rows(), src.cols(), src.type());
         //closing operation
         Imgproc.dilate(src, closing, new Mat(), new Point(-1, -1), 2, 1, new Scalar(1));
@@ -88,7 +81,7 @@ public class VenationDetector {
         return src;
     }
 
-    private ArrayList<MatOfPoint> findContours(Mat mat){
+    private ArrayList<MatOfPoint> findContours(Mat mat) {
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
 
@@ -96,14 +89,14 @@ public class VenationDetector {
         Imgproc.threshold(mat, mat, 160, 255, Imgproc.THRESH_BINARY_INV);
 
         Imgproc.Canny(mat, mat, 80, 100);
-         Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
+        Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
         hierarchy.release();
 
         return contours;
     }
 
-    private int findOuterContour(ArrayList<MatOfPoint> contours){
+    private int findOuterContour(ArrayList<MatOfPoint> contours) {
         int imax = -1;
         double areamax = -1;
         for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
@@ -115,64 +108,143 @@ public class VenationDetector {
         return imax;
     }
 
-    private Mat removeOuterContour(Mat mat, ArrayList<MatOfPoint> contours, int imax){
+    private Mat removeOuterContour(Mat mat, ArrayList<MatOfPoint> contours, int imax) {
         contour = mat.clone();
-       // if(imax != -1) {
-            Mat buffer = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
-            Mat mask = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
-            Imgproc.drawContours(mask, contours, imax, new Scalar(255), -1);
 
-            contour = mat.clone();
+        Mat buffer = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
+        Mat mask = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
+        Imgproc.drawContours(mask, contours, imax, new Scalar(255), -1);
 
-            Imgproc.drawContours(mat, contours, imax, new Scalar(0), 20);
-            Log.d(getClass().getName(), "outer contour was removed");
+        contour = mat.clone();
 
-            //Core.bitwise_and(mat, mask, mat);
-            mat.copyTo(buffer, mask);
+        Imgproc.drawContours(mat, contours, imax, new Scalar(0), 20);
+        Log.d(getClass().getName(), "outer contour was removed");
 
-            mat = buffer;
+        mat.copyTo(buffer, mask);
 
-
-            // Imgproc.drawContours(contour, contours, imax, new Scalar(255), 20);
-
-            //contour = mat.clone();
-      //  }else {
-
-      //      Log.d(getClass().getName(), "outer contour wasn't removed");
-      //  }
+        mat = buffer;
 
         return mat;
     }
 
-    private Mat imageEnhancement(Mat mat){
+    private Mat imageEnhancement(Mat mat) {
         Imgproc.equalizeHist(mat, mat);
         imageEnchancement = mat.clone();
         Imgproc.putText(imageEnchancement, "imageEnchancement", new Point(0, 90), 0, 2, new Scalar(255));
         return mat;
     }
 
-    private Mat binarization(Mat mat){
+    private Mat binarization(Mat mat) {
         Imgproc.threshold(mat, mat, 215, 255, Imgproc.THRESH_BINARY);
         binarization = mat.clone();
         Imgproc.putText(binarization, "binarization", new Point(0, 90), 0, 2, new Scalar(255));
         return mat;
     }
 
-    private void findLines(Mat mat, Mat dst){
+    private boolean areLinesEqual(double vec1[], double vec2[]) {
+        double length1 = Math.sqrt((vec1[0] - vec1[2]) * (vec1[0] - vec1[2]) + (vec1[1] - vec1[3]) * (vec1[1] - vec1[3]));//sqrtf((l1[2] - l1[0])*(l1[2] - l1[0]) + (l1[3] - l1[1])*(l1[3] - l1[1]));
+        double length2 = Math.sqrt((vec2[0] - vec2[2]) * (vec2[0] - vec2[2]) + (vec2[1] - vec2[3]) * (vec2[1] - vec2[3]));//sqrtf((l1[2] - l1[0])*(l1[2] - l1[0]) + (l1[3] - l1[1])*(l1[3] - l1[1]));
+
+        double product = (vec1[2] - vec1[0]) * (vec2[2] - vec2[0]) + (vec1[3] - vec1[1]) * (vec2[3] - vec2[1]);
+
+
+        Log.d("lines", "angle = " + Math.acos(Math.abs(product / (length1 * length2))) * 180 / Math.PI);
+
+        if (Math.abs(product / (length1 * length2)) < Math.cos(5 * Math.PI / 180))
+            return false;
+
+        Log.d("lines", "cos = " + Math.abs(product / (length1 * length2)) + " cos5 = " + Math.cos(5 * Math.PI / 180));
+
+        double y1 = (vec1[3] - vec1[1]);
+        double x1 = (vec1[2] - vec1[0]);
+
+        double y2 = (vec2[3] - vec2[1]);
+        double x2 = (vec2[2] - vec2[0]);
+
+        double k1 = y1 / x1;
+        double k2 = y2 / x2;
+
+        double b1 = -(vec1[0] * y1 + vec1[1] * x1) / x1;
+        double b2 = -(vec2[0] * y2 + vec2[1] * x2) / x2;
+
+        double s1 = x1 * Math.sqrt(x1 * x1 + y1 * y1);
+        double s2 = x2 * Math.sqrt(x2 * x2 + y2 * y2);
+
+        double s = (s1 + s2) / 2;
+
+        //double m = (k1 + k2) / 2;
+
+        double dist = Math.abs(b2 - b1) / s;
+
+        Log.d("Lines", "distance " + dist);
+        Log.d("Lines", "max dist " + Math.max(length1, length2) * 0.1);
+
+        if (dist > Math.max(length1, length2) * 0.1)
+            return false;
+
+        return true;
+    }
+
+    private double calculateLineLength(double vec1[]) {
+        return Math.sqrt((vec1[0] - vec1[2]) * (vec1[0] - vec1[2]) + (vec1[1] - vec1[3]) * (vec1[1] - vec1[3]));
+    }
+
+    private int deleteCloseLines(Mat lines, Mat rgba) {
+        int output[] = new int[lines.rows()];
+
+        Arrays.fill(output, 0);
+
+        boolean flag;
+
+        for (int i = 0; i < lines.rows(); i++) {
+            flag = true;
+            for (int j = i + 1; j < lines.rows() && flag; j++) {
+                double[] vec1 = lines.get(i, 0);
+                double[] vec2 = lines.get(j, 0);
+
+                if (output[j] != -1 && areLinesEqual(vec1, vec2)) {
+                    if (calculateLineLength(vec1) > calculateLineLength(vec2)) {
+                        output[j] = -1;
+                    } else {
+                        output[i] = -1;
+                        flag = false;
+                    }
+                }
+            }
+        }
+
+        int k = 0;
+        for (int i = 0; i < lines.rows(); i++) {
+            if (output[i] != -1) {
+                double[] vec = lines.get(i, 0);
+                double x1 = vec[0],
+                        y1 = vec[1],
+                        x2 = vec[2],
+                        y2 = vec[3];
+                Point start = new Point(x1, y1);
+                Point end = new Point(x2, y2);
+
+                k++;
+                Imgproc.line(rgba, start, end, new Scalar(255, 0, 0), 3);
+            }
+        }
+
+        return k;
+    }
+
+    private Mat findLines(Mat mat, Mat dst, float minLineLength) {
         findLines = new Mat(mat.rows(), mat.cols(), mat.type(), new Scalar(0));
 
-
-
         Mat lines = new Mat();
-        Imgproc.HoughLinesP(mat, lines, 1, Math.PI / 180, 60, 70, 10);
+        Imgproc.HoughLinesP(mat, lines, 1, Math.PI / 180, (int) minLineLength - (int) (minLineLength * 0.05), minLineLength, minLineLength * 0.05);
 
         int index = -1;
         double max_res = -1;
 
-        Log.d("Lines", "Lines " + lines.cols());
+        Log.d("Lines", "Lines " + lines.rows());
 
-        for (int x = 0; x < lines.cols(); x++) {
-            double[] vec = lines.get(0, x);
+        for (int x = 0; x < lines.rows(); x++) {
+            double[] vec = lines.get(x, 0);
             double x1 = vec[0],
                     y1 = vec[1],
                     x2 = vec[2],
@@ -180,23 +252,24 @@ public class VenationDetector {
             Point start = new Point(x1, y1);
             Point end = new Point(x2, y2);
 
-            double res = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+            double res = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
-            if (res > max_res){
+            if (res > max_res) {
                 max_res = res;
                 index = x;
             }
 
-            Imgproc.line(dst, start, end, new Scalar(255,0,0), 8);
-            Imgproc.line(findLines, start, end, new Scalar(255), 8);
+            //Imgproc.line(dst, start, end, new Scalar(255, 0, 0), 8);
+            Imgproc.line(findLines, start, end, new Scalar(255), 1);
         }
 
-        if (lines.cols() == 0){
-            return;
+        if (lines.rows() == 0) {
+            return lines;
         }
 
         int x = index;
-        double[] vec = lines.get(0, x);
+        double[] vec = lines.get(x, 0);
+
         double x1 = vec[0],
                 y1 = vec[1],
                 x2 = vec[2],
@@ -205,9 +278,31 @@ public class VenationDetector {
         Point end = new Point(x2, y2);
 
         //draw main vein
-        Imgproc.line(dst, start, end, new Scalar(255, 0, 255), 8);
+        //Imgproc.line(dst, start, end, new Scalar(255, 0, 255), 8);
 
         Imgproc.putText(findLines, "findLines", new Point(0, 90), 0, 2, new Scalar(255));
 
+        return lines;
+    }
+
+    public float getMinLineLength(Mat rgbs, MatOfPoint contour) {
+        float f[] = new float[1];
+        MatOfPoint2f matOfPoint2f = new MatOfPoint2f(contour.toArray());
+
+        RotatedRect box = Imgproc.fitEllipse(matOfPoint2f);
+        Log.d("Lines", "Radius: " + f[0]);
+
+        //Imgproc.ellipse(rgbs, box, new Scalar(255, 255, 0));
+        return (float) Math.min(box.size.width, box.size.height);
+    }
+
+    private String classify(int numLines) {
+        if(numLines == 0){
+            return "0 veins found";
+        }
+        if (numLines > 1) {
+            return "> 1 main veins";
+        }
+        return "1 main vein";
     }
 }

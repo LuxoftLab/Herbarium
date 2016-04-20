@@ -9,7 +9,10 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.features2d.Features2d;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.Objdetect;
 
 import java.util.ArrayList;
 
@@ -21,25 +24,25 @@ public class LeafData {
 
     private Mat morphology;
 
-    private LeafData(){
+    private LeafData() {
         contour = null;
         grayMat = null;
         rgbaMat = null;
     }
 
-    public static LeafData getLeafData(){
-        if(leafData == null){
+    public static LeafData getLeafData() {
+        if (leafData == null) {
             leafData = new LeafData();
         }
         return leafData;
     }
 
-    public boolean find(Mat mat, float x, float y, Mat rgba){
+    public boolean find(Mat mat, float x, float y, Mat rgba) {
         Mat gray1 = mat.clone(), rgba1 = rgba.clone();
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
 
-        Imgproc.GaussianBlur(mat, mat, new Size(15, 15), 0 );//, 0.3 * (3 / 2 - 1) + 0.8, 0.0, 4);
+        Imgproc.GaussianBlur(mat, mat, new Size(25, 25), 0);
         Imgproc.threshold(mat, mat, 160, 255, Imgproc.THRESH_BINARY_INV | Imgproc.THRESH_OTSU);
 
         Imgproc.Canny(mat, mat, 80, 100);
@@ -52,62 +55,54 @@ public class LeafData {
 
         for (int contourIdx = 0; contourIdx < contours.size() && contours != null && hierarchy != null; contourIdx++) {
             contoursMat = contours.get(contourIdx);
-            if(contoursMat == null) continue;
-            MatOfPoint2f input = new MatOfPoint2f(contoursMat.toArray());
+            if (contoursMat == null) continue;
+           // MatOfPoint2f input = new MatOfPoint2f(contoursMat.toArray());
 
-            if ( Imgproc.contourArea(contoursMat) > areamax
+            /*
+            if (Imgproc.contourArea(contoursMat) > areamax
                     && Imgproc.pointPolygonTest(input, new Point(x, y), false) > 0
                     && hierarchy.get(contourIdx, 2) != null
                     && hierarchy.get(contourIdx, 2)[0] != -1) {
                 imax = contourIdx;
                 areamax = Imgproc.contourArea(contoursMat);
-            }
+            }*/
 
-            if ( Imgproc.contourArea(contoursMat) > areamax1) {
+            if (Imgproc.contourArea(contoursMat) > areamax1) {
                 imax1 = contourIdx;
                 areamax1 = Imgproc.contourArea(contoursMat);
             }
-
-
-
         }
 
-        if(imax1 != -1){
-            Imgproc.drawContours(rgba, contours, imax1, new Scalar(0, 255, 255), 8);
+        if (imax1 != -1) {
+            Imgproc.drawContours(rgba, contours, imax1, new Scalar(0, 255, 255), 2);
+
+            contoursMat = contours.get(imax1);
+            if (contoursMat != null) {
+                MatOfPoint2f input = new MatOfPoint2f(contoursMat.toArray());
+
+                if (Imgproc.pointPolygonTest(input, new Point(x, y), false) <= 0) {
+                    return false;
+                }
+
+                contour = contours.get(imax1);
+                rgbaMat = rgba1;
+                grayMat = gray1;
+                return true;
+            }
         }
 
-        if(imax != -1){
-
-            contour = contours.get(imax);
-            rgbaMat = rgba1;
-            grayMat = gray1;
-
-            return true;
-        }
-        else {
-            return false;
-        }
+        return false;
     }
 
-    public MatOfPoint getContour(){
+    public MatOfPoint getContour() {
         return contour;
     }
 
-    public Mat getGray(){
+    public Mat getGray() {
         return grayMat;
     }
 
-    public Mat getRgba(){
+    public Mat getRgba() {
         return rgbaMat;
-    }
-
-    public Bitmap getMorphology(){
-        Bitmap bitmap = Bitmap.createBitmap(morphology.width(), morphology.height(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(morphology, bitmap);
-        return bitmap;
-    }
-
-    public void setMorphology(Mat m){
-        morphology = m;
     }
 }
