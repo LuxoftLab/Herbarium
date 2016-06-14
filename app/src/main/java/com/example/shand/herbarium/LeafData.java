@@ -22,11 +22,24 @@ public class LeafData {
     private Mat rgbaMat;
 
     private Point basePoint;
+    private ArrayList<MatOfPoint> leavesContoursWithoutScape;
 
     private LeafData() {
         contour = null;
         grayMat = null;
         rgbaMat = null;
+    }
+
+    public void setGrayMat(Mat m){
+        grayMat = m;
+    }
+
+    public void setRgbaMat(Mat m){
+        rgbaMat = m;
+    }
+
+    public void setContour(MatOfPoint m){
+        contour = m;
     }
 
     public static LeafData getLeafData() {
@@ -166,6 +179,10 @@ public class LeafData {
         }
         contour = mat;
         return true;
+    }
+
+    public ArrayList<MatOfPoint> getLeavesContoursWithoutScape(){
+        return leavesContoursWithoutScape;
     }
 
     public MatOfPoint findLargestContour(Mat mat){

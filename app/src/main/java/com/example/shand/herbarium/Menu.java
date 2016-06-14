@@ -29,7 +29,7 @@ public class Menu extends Activity {
         buttonFindContour.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent mIntent = new Intent(Menu.this, FindContoursActivity.class);
+                Intent mIntent = new Intent(Menu.this, ComplicatedLeafActivity.class);
                 startActivity(mIntent);
             }
         });
