@@ -123,7 +123,7 @@ public class VenationActivity extends Activity implements CvCameraViewListener2 
             if (touch) {
                 isContourFound = leafData.find(frameMat, xTouch, yTouch, rgba);
                 if (isContourFound) {
-                    Intent intent = new Intent(this, ShowVenation.class);
+                    Intent intent = new Intent(this, ShowVenationActivity.class);
                     startActivity(intent);
                 }
 

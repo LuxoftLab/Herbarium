@@ -9,7 +9,6 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -80,7 +79,7 @@ public class VenationDetector {
 
         return src;
     }
-
+/*
     private ArrayList<MatOfPoint> findContours(Mat mat) {
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
@@ -106,7 +105,7 @@ public class VenationDetector {
             }
         }
         return imax;
-    }
+    }*/
 
     private Mat removeOuterContour(Mat mat, ArrayList<MatOfPoint> contours, int imax) {
         contour = mat.clone();

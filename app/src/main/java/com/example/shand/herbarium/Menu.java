@@ -10,6 +10,7 @@ public class Menu extends Activity {
     Button buttonMoveToCatchLeaves;
     Button buttonFindContour;
     Button buttonFindVenation;
+    Button buttonFormDetection;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +36,7 @@ public class Menu extends Activity {
         });
 
         buttonFindVenation = (Button) findViewById(R.id.buttonFindVenation);
+
         buttonFindVenation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -43,6 +45,15 @@ public class Menu extends Activity {
             }
         });
 
+        buttonFormDetection = (Button) findViewById(R.id.formButton);
+
+        buttonFormDetection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Menu.this, IsDisjoinedActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 

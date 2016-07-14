@@ -1,17 +1,15 @@
 package com.example.shand.herbarium;
 
 import android.graphics.Bitmap;
-import android.media.Image;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 
-public class ShowVenation extends AppCompatActivity {
+public class ShowVenationActivity extends AppCompatActivity {
     private ImageView imageView;
 
     @Override
@@ -46,6 +44,7 @@ public class ShowVenation extends AppCompatActivity {
         Utils.matToBitmap(morphology, bitmap);
         imageView.setImageBitmap(bitmap);
         scrollView.addView(imageView);
+/*
 
         imageView = new ImageView(this);
         morphology = venationDetector.getContour();
@@ -53,6 +52,7 @@ public class ShowVenation extends AppCompatActivity {
         Utils.matToBitmap(morphology, bitmap);
         imageView.setImageBitmap(bitmap);
         scrollView.addView(imageView);
+*/
 
         imageView = new ImageView(this);
         morphology = venationDetector.getImageEnchancement();
