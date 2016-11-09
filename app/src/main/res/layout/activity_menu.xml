@@ -1,19 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context="com.example.shand.herbarium.Menu">
+    android:orientation="vertical"
+    android:background="#FFFFFF">
 
-    <android.support.design.widget.AppBarLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/menu_tittle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="Herbarium"
+        android:textSize="40dp"
+        android:layout_gravity="center" />
 
-    </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_menu" />
+    <Button
+        android:id="@+id/classifyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Classify"
+        android:layout_above="@+id/showDatabaseButton"
+        android:layout_alignEnd="@+id/showDatabaseButton"
+        android:layout_alignStart="@+id/showDatabaseButton" />
 
-</android.support.design.widget.CoordinatorLayout>
+    <Button
+        android:id="@+id/addNewPlantMenuButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Add new plant"
+        android:layout_below="@+id/showDatabaseButton"
+        android:layout_alignStart="@+id/showDatabaseButton"
+        android:layout_alignEnd="@+id/showDatabaseButton" />
+
+    <Button
+        android:id="@+id/showDatabaseButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Show database"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:id="@+id/debugButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Debug"
+        android:layout_below="@+id/addNewPlantMenuButton"
+        android:layout_alignStart="@+id/addNewPlantMenuButton"
+        android:layout_alignEnd="@+id/addNewPlantMenuButton" />
+
+</RelativeLayout>
+
